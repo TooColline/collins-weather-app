@@ -1,0 +1,20 @@
+{
+  "semi": false,
+  "tabWidth": 2,
+  "useTabs": false,
+  "printWidth": 120,
+  "singleQuote": true,
+  "spaceBeforeFunctionParen": true,
+  "trailingComma": "es5",
+  "pugBracketSpacing": true,
+  "pugPrintWidth": 120,
+  "pugSemi": false,
+  "pugTabWidth": 4,
+  "pugSingleQuote": true,
+  "pugUseTabs": false,
+  "pugArrowParens": "always",
+  "pugWrapAttributesThreshold": 1,
+  "pugSortAttributes": "asc",
+  "pugEmptyAttributes": "none",
+  "vueIndentScriptAndStyle": true
+}
