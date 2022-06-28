@@ -9,28 +9,37 @@
         placeholder="Enter a location and press enter"
       />
     </div>
-    <div @click="showMore = !showMore" class="location-weather-overview">
-      <div class="location">
-        <h1 class="current-temp">{{ currTemp }}</h1>
-        <h3 class="title">{{ weatherLocation.name }}, {{ weatherLocation.country }}</h3>
+    <div class="weather-info-body">
+      <div @click="showMore = !showMore" class="location-weather-overview">
+        <div class="location">
+          <h1 class="current-temp">{{ currTemp }}</h1>
+          <h3 class="title">{{ weatherLocation.name }}, {{ weatherLocation.country }}</h3>
+        </div>
+        <div class="weather-overview">
+          <img v-if="weatherIconUrl" class="weather-icon" :src="weatherIconUrl" alt="Weather icon" />
+          <h3>{{ capitalize(weatherDescription.description) }}</h3>
+          <h4 class="high-low-temp">{{ highLowTemperature }}</h4>
+        </div>
       </div>
-      <div class="weather-overview">
-        <img v-if="weatherIconUrl" class="weather-icon" :src="weatherIconUrl" alt="Weather icon" />
-        <h3>{{ capitalize(weatherDescription.description) }}</h3>
-        <h4 class="high-low-temp">{{ highLowTemperature }}</h4>
+      <Transition>
+        <div v-if="showMore" class="additional-info">
+          <DataCard v-for="data in dataInfo" :title="data.title" :value="data.value">
+            <template #icon>
+              <WeatherWindy v-if="data.icon === WeatherWindy" />
+              <Waves v-else-if="data.icon === Waves" />
+              <CarBrakeRetarder v-else-if="data.icon === CarBrakeRetarder" />
+              <WeatherSunsetUp v-else-if="data.icon === WeatherSunsetUp" />
+              <Thermometer v-else-if="data.icon === Thermometer" />
+            </template>
+          </DataCard>
+        </div>
+      </Transition>
+      <div class="next-days">
+        <h5>Next 7 days</h5>
       </div>
-    </div>
-    <hr v-if="showMore" />
-    <div v-if="showMore" class="additional-info">
-      <DataCard v-for="data in dataInfo" :title="data.title" :value="data.value">
-        <template #icon>
-          <WeatherWindy v-if="data.icon === WeatherWindy" />
-          <Waves v-else-if="data.icon === Waves" />
-          <CarBrakeRetarder v-else-if="data.icon === CarBrakeRetarder" />
-          <WeatherSunsetUp v-else-if="data.icon === WeatherSunsetUp" />
-          <Thermometer v-else-if="data.icon === Thermometer" />
-        </template>
-      </DataCard>
+      <div class="last-days">
+        <h5>Last 5 days</h5>
+      </div>
     </div>
   </div>
 </template>
@@ -171,33 +180,51 @@
 
 <style lang="postcss">
   .my-weather {
-    @apply flex flex-col space-y-[20px] bg-white px-[20px] py-[15px] rounded-lg shadow-lg;
-    @apply md:w-[500px];
+    @apply flex flex-col space-y-[20px] px-[20px] py-[15px] w-full bg-white;
+    @apply md:w-[500px] md:rounded-lg md:shadow-lg;
     .location-input {
       @apply flex flex-col space-y-[10px];
       input {
         @apply w-full px-[10px] py-[5px] rounded-lg border focus:border-blue-500 outline-none;
       }
     }
-    .location-weather-overview {
-      @apply flex items-end justify-between md:cursor-pointer;
-      .location {
-        .current-temp {
-          @apply font-bold;
+    .weather-info-body {
+      @apply flex flex-col space-y-[20px];
+      > * {
+        @apply border-b pb-[20px];
+      }
+      > :last-child {
+        @apply border-b-0;
+      }
+      .location-weather-overview {
+        @apply flex items-end justify-between md:cursor-pointer;
+        .location {
+          .current-temp {
+            @apply font-bold;
+          }
+        }
+        .weather-overview {
+          @apply flex flex-col items-end;
+          img.weather-icon {
+            @apply w-[60px] h-[60px];
+          }
+          .high-low-temp {
+            @apply opacity-50;
+          }
         }
       }
-      .weather-overview {
-        @apply flex flex-col items-end;
-        img.weather-icon {
-          @apply w-[60px] h-[60px];
-        }
-        .high-low-temp {
-          @apply opacity-50;
-        }
+      .additional-info {
+        @apply grid grid-cols-3 gap-[10px] md:grid-cols-4;
       }
     }
-    .additional-info {
-      @apply grid grid-cols-4 gap-[10px];
-    }
+  }
+  .v-enter-active,
+  .v-leave-active {
+    transition: opacity 0.5s ease;
+  }
+
+  .v-enter-from,
+  .v-leave-to {
+    opacity: 0;
   }
 </style>
