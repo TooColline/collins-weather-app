@@ -1,19 +1,36 @@
 <template>
   <div class="my-weather">
+    <div class="location-input">
+      <h4>Find weather</h4>
+      <input
+        @keyup.enter="fetchWeather"
+        type="search"
+        v-model="location"
+        placeholder="Enter a location and press enter"
+      />
+    </div>
     <div @click="showMore = !showMore" class="location-weather-overview">
       <div class="location">
         <h1 class="current-temp">{{ currTemp }}</h1>
         <h3 class="title">{{ weatherLocation.name }}, {{ weatherLocation.country }}</h3>
       </div>
       <div class="weather-overview">
-        <img class="weather-icon" :src="weatherIconUrl" alt="Weather icon" />
+        <img v-if="weatherIconUrl" class="weather-icon" :src="weatherIconUrl" alt="Weather icon" />
         <h3>{{ capitalize(weatherDescription.description) }}</h3>
         <h4 class="high-low-temp">{{ highLowTemperature }}</h4>
       </div>
     </div>
     <hr v-if="showMore" />
     <div v-if="showMore" class="additional-info">
-      <h5>Additional info</h5>
+      <DataCard v-for="data in dataInfo" :title="data.title" :value="data.value">
+        <template #icon>
+          <WeatherWindy v-if="data.icon === WeatherWindy" />
+          <Waves v-else-if="data.icon === Waves" />
+          <CarBrakeRetarder v-else-if="data.icon === CarBrakeRetarder" />
+          <WeatherSunsetUp v-else-if="data.icon === WeatherSunsetUp" />
+          <Thermometer v-else-if="data.icon === Thermometer" />
+        </template>
+      </DataCard>
     </div>
   </div>
 </template>
@@ -22,9 +39,23 @@
   import { computed, onMounted, ref } from 'vue'
   import WeatherApi from '@/services/api/WeatherApi'
   import { key } from '@/store/weather'
+  import DataCard from '@/components/DataCard.vue'
+  import WeatherWindy from 'vue-material-design-icons/WeatherWindy.vue'
+  import Waves from 'vue-material-design-icons/Waves.vue'
+  import Thermometer from 'vue-material-design-icons/Thermometer.vue'
+  import WeatherSunsetUp from 'vue-material-design-icons/WeatherSunsetUp.vue'
+  import CarBrakeRetarder from 'vue-material-design-icons/CarBrakeRetarder.vue'
+  import { createToaster } from '@meforma/vue-toaster'
+  import { DateTime } from 'luxon'
   import { useStore } from 'vuex'
-  const store = useStore(key)
 
+  const store = useStore(key)
+  const toaster = createToaster({
+    position: 'top',
+    duration: 3000,
+  })
+
+  const location = ref('')
   const showMore = ref(false)
 
   const weatherLocation = computed(() => store.state.weatherData.location)
@@ -46,11 +77,57 @@
       )}\u00B0`
   )
 
+  const formatDateFromSeconds = computed(() => (seconds: number) => {
+    const date = DateTime.fromSeconds(seconds)
+    return date.toFormat('HH:mm')
+  })
+
+  const dataInfo = computed(() => {
+    return [
+      {
+        title: 'Wind',
+        value: `${weather.value.windSpeed} km/h`,
+        icon: WeatherWindy,
+      },
+      {
+        title: 'Humidity',
+        value: `${weather.value.humidity}%`,
+        icon: Waves,
+      },
+      {
+        title: 'Feels like',
+        value: `${mathRound.value(weather.value.feelsLike)}\u00B0`,
+        icon: Thermometer,
+      },
+      {
+        title: 'Pressure',
+        value: `${weather.value.pressure} hPa`,
+        icon: CarBrakeRetarder,
+      },
+      {
+        title: 'Sunrise',
+        value: formatDateFromSeconds.value(weather.value.sunrise),
+        icon: WeatherSunsetUp,
+      },
+      {
+        title: 'Sunset',
+        value: formatDateFromSeconds.value(weather.value.sunset),
+        icon: WeatherSunsetUp,
+      },
+    ]
+  })
+
   const weatherIconUrl = computed(() => `http://openweathermap.org/img/wn/${weatherDescription.value.icon}@2x.png`)
 
-  const getWeather = async () => {
-    await WeatherApi.getWeatherDetails('nairobi')
-      .then((resp) => {
+  const fetchWeather = () => {
+    if (location.value) {
+      getWeather(location.value)
+    }
+  }
+
+  const getWeather = async (location: string) => {
+    await WeatherApi.getWeatherDetails(location)
+      .then((resp: any) => {
         console.log(resp, 'response')
         store.dispatch('setWeather', {
           currentTemperature: resp.main.temp,
@@ -78,13 +155,17 @@
           icon: resp.weather[0].icon,
         })
       })
-      .catch((err) => {
-        console.log(err, 'error')
+      .catch((err: any) => {
+        if (err.response.status === 404) {
+          toaster.show('Location not found, try another location', {
+            type: 'error',
+          })
+        }
       })
   }
 
   onMounted(() => {
-    getWeather()
+    getWeather('London')
   })
 </script>
 
@@ -92,6 +173,12 @@
   .my-weather {
     @apply flex flex-col space-y-[20px] bg-white px-[20px] py-[15px] rounded-lg shadow-lg;
     @apply md:w-[500px];
+    .location-input {
+      @apply flex flex-col space-y-[10px];
+      input {
+        @apply w-full px-[10px] py-[5px] rounded-lg border focus:border-blue-500 outline-none;
+      }
+    }
     .location-weather-overview {
       @apply flex items-end justify-between md:cursor-pointer;
       .location {
@@ -108,6 +195,9 @@
           @apply opacity-50;
         }
       }
+    }
+    .additional-info {
+      @apply grid grid-cols-4 gap-[10px];
     }
   }
 </style>
