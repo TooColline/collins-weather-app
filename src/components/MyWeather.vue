@@ -1,5 +1,6 @@
 <template>
-  <div class="my-weather">
+  <MyWeatherLoader :initialLoad="false" v-if="loadingWeatherData" />
+  <div v-else class="my-weather">
     <div class="location-input">
       <h4>Find weather</h4>
       <input
@@ -10,50 +11,39 @@
       />
     </div>
     <div class="weather-info-body">
-      <div @click="showMore = !showMore" class="location-weather-overview">
-        <div class="location">
-          <h1 class="current-temp">{{ currTemp }}</h1>
-          <h3 class="title">{{ weatherLocation.name }}, {{ weatherLocation.country }}</h3>
+      <MyWeatherLoader v-if="reLoadingWeatherData" />
+      <template v-else>
+        <div @click="showMore = !showMore" class="location-weather-overview">
+          <div class="location">
+            <h1 class="current-temp">{{ currTemp }}</h1>
+            <h3 class="title">{{ weatherLocation.name }}, {{ weatherLocation.country }}</h3>
+          </div>
+          <div class="weather-overview">
+            <img v-if="weatherIconUrl" class="weather-icon" :src="weatherIconUrl" alt="Weather icon" />
+            <h3>{{ capitalize(weatherDescription.description) }}</h3>
+            <h4 class="high-low-temp">{{ highLowTemperature }}</h4>
+          </div>
         </div>
-        <div class="weather-overview">
-          <img v-if="weatherIconUrl" class="weather-icon" :src="weatherIconUrl" alt="Weather icon" />
-          <h3>{{ capitalize(weatherDescription.description) }}</h3>
-          <h4 class="high-low-temp">{{ highLowTemperature }}</h4>
+        <Transition>
+          <AdditionalWeatherData v-if="showMore" :dataInfo="dataInfo" />
+        </Transition>
+        <div class="next-days">
+          <h5>Next 7 days data here</h5>
         </div>
-      </div>
-      <Transition>
-        <div v-if="showMore" class="additional-info">
-          <DataCard v-for="data in dataInfo" :title="data.title" :value="data.value">
-            <template #icon>
-              <WeatherWindy v-if="data.icon === WeatherWindy" />
-              <Waves v-else-if="data.icon === Waves" />
-              <CarBrakeRetarder v-else-if="data.icon === CarBrakeRetarder" />
-              <WeatherSunsetUp v-else-if="data.icon === WeatherSunsetUp" />
-              <Thermometer v-else-if="data.icon === Thermometer" />
-            </template>
-          </DataCard>
+        <div class="last-days">
+          <h5>Last 5 days data here</h5>
         </div>
-      </Transition>
-      <div class="next-days">
-        <h5>Next 7 days</h5>
-      </div>
-      <div class="last-days">
-        <h5>Last 5 days</h5>
-      </div>
+      </template>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
   import { computed, onMounted, ref } from 'vue'
+  import MyWeatherLoader from '@/components/loaders/MyWeatherLoader.vue'
+  import AdditionalWeatherData from '@/components/AdditionalWeatherData.vue'
   import WeatherApi from '@/services/api/WeatherApi'
   import { key } from '@/store/weather'
-  import DataCard from '@/components/DataCard.vue'
-  import WeatherWindy from 'vue-material-design-icons/WeatherWindy.vue'
-  import Waves from 'vue-material-design-icons/Waves.vue'
-  import Thermometer from 'vue-material-design-icons/Thermometer.vue'
-  import WeatherSunsetUp from 'vue-material-design-icons/WeatherSunsetUp.vue'
-  import CarBrakeRetarder from 'vue-material-design-icons/CarBrakeRetarder.vue'
   import { createToaster } from '@meforma/vue-toaster'
   import { DateTime } from 'luxon'
   import { useStore } from 'vuex'
@@ -64,6 +54,8 @@
     duration: 3000,
   })
 
+  const loadingWeatherData = ref(true)
+  const reLoadingWeatherData = ref(false)
   const location = ref('')
   const showMore = ref(false)
 
@@ -96,32 +88,32 @@
       {
         title: 'Wind',
         value: `${weather.value.windSpeed} km/h`,
-        icon: WeatherWindy,
+        icon: 'WeatherWindy',
       },
       {
         title: 'Humidity',
         value: `${weather.value.humidity}%`,
-        icon: Waves,
+        icon: 'Waves',
       },
       {
         title: 'Feels like',
         value: `${mathRound.value(weather.value.feelsLike)}\u00B0`,
-        icon: Thermometer,
+        icon: 'Thermometer',
       },
       {
         title: 'Pressure',
         value: `${weather.value.pressure} hPa`,
-        icon: CarBrakeRetarder,
+        icon: 'CarBrakeRetarder',
       },
       {
         title: 'Sunrise',
         value: formatDateFromSeconds.value(weather.value.sunrise),
-        icon: WeatherSunsetUp,
+        icon: 'WeatherSunsetUp',
       },
       {
         title: 'Sunset',
         value: formatDateFromSeconds.value(weather.value.sunset),
-        icon: WeatherSunsetUp,
+        icon: 'WeatherSunsetUp',
       },
     ]
   })
@@ -130,6 +122,7 @@
 
   const fetchWeather = () => {
     if (location.value) {
+      reLoadingWeatherData.value = true
       getWeather(location.value)
     }
   }
@@ -137,7 +130,7 @@
   const getWeather = async (location: string) => {
     await WeatherApi.getWeatherDetails(location)
       .then((resp: any) => {
-        console.log(resp, 'response')
+        // console.log(resp, 'response')
         store.dispatch('setWeather', {
           currentTemperature: resp.main.temp,
           feelsLike: resp.main.feels_like,
@@ -171,10 +164,22 @@
           })
         }
       })
+      .finally(() => {
+        loadingWeatherData.value = false
+        reLoadingWeatherData.value = false
+      })
   }
 
   onMounted(() => {
-    getWeather('London')
+    getWeather('Nairobi')
+    // testing weather forecast for x days
+    WeatherApi.getPastDetails()
+      .then((resp: any) => {
+        // console.log(resp, 'response')
+      })
+      .catch((err: { response: any }) => {
+        // console.log(err.response, 'error')
+      })
   })
 </script>
 
@@ -212,9 +217,6 @@
             @apply opacity-50;
           }
         }
-      }
-      .additional-info {
-        @apply grid grid-cols-3 gap-[10px] md:grid-cols-4;
       }
     }
   }

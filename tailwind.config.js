@@ -25,7 +25,15 @@ module.exports = {
     fontFamily: {
       nunito: ['Nunito', 'sans-serif'],
     },
-    extend: {},
+    extend: {
+      animation: {
+        shimmer: 'placeHolderShimmer 2s linear infinite forwards',
+      },
+      backgroundPosition: {
+        'shimmer-start': '0',
+        'shimmer-end': '100%',
+      },
+    },
   },
   plugins: [],
 }
