@@ -15,7 +15,7 @@ export interface State {
       sunset: string
     }
     weatherDescription: {
-      id: string
+      id: number
       icon: string
       main: string
       description: string
@@ -57,7 +57,7 @@ export const store = createStore<State>({
         date: 0, // unix time
       },
       weatherDescription: {
-        id: '',
+        id: 0,
         icon: '',
         main: '',
         description: '',
@@ -101,8 +101,16 @@ export const store = createStore<State>({
     ) {
       commit('SET_WEATHER', payload)
     },
-    setWeatherDescription({ commit }, weatherDescription) {
-      commit('SET_WEATHER_DESCRIPTION', weatherDescription)
+    setWeatherDescription(
+      { commit },
+      payload: {
+        id: number
+        icon: string
+        main: string
+        description: string
+      }
+    ) {
+      commit('SET_WEATHER_DESCRIPTION', payload)
     },
     setWeatherLocation(
       { commit },

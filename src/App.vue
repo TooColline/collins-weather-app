@@ -8,6 +8,6 @@
 
 <style lang="postcss">
   #app {
-    @apply min-h-screen w-full mx-auto flex flex-col items-center justify-center;
+    @apply min-h-screen w-full mx-auto flex flex-col items-center justify-center bg-gray-200;
   }
 </style>
