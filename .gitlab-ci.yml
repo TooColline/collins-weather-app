@@ -16,7 +16,7 @@ build:
 deploy:
   stage: deploy
   script:
-    # install dpl:
+    - apt-get update -yq
+    - apt-get install -y ruby-dev
     - gem install dpl
-    # deploy to heroku:
-    - dpl --provider=heroku --app=$HEROKU_APP_NAME --api_key=$HEROKU_API_KEY
+    - dpl --provider=heroku --app=too-collins-weather-app --api_key=$HEROKU_STAGING_API_KEY
