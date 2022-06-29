@@ -22,4 +22,4 @@ deploy:
     - apt-get install rubygems ruby-dev -y
     - gem install dpl
     # deploy to heroku:
-    - dpl --provider=heroku --app=$HEROKU_APP_NAME --api-key=$HEROKU_API_KEY --skip_cleanup
+    - dpl --provider=heroku --app_name=$HEROKU_APP_NAME --api_key=$HEROKU_API_KEY
