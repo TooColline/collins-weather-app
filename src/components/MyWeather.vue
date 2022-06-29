@@ -159,13 +159,14 @@
   const fetchWeather = () => {
     if (location.value) {
       reLoadingWeatherData.value = true
-      getLocationWeather()
+      getCurrentWeather(location.value)
     }
   }
 
   const getCurrentWeather = async (location: string) => {
     await WeatherApi.getWeatherDetails(location)
       .then((resp: any) => {
+        console.log(resp, 'resp')
         store.dispatch('setWeather', {
           currentTemperature: resp.main.temp,
           feelsLike: resp.main.feels_like,
@@ -191,11 +192,19 @@
           description: resp.weather[0].description,
           icon: resp.weather[0].icon,
         })
+        getFutureWeatherForecastData(resp.coord.lat, resp.coord.lon)
       })
       .catch((err: any) => {
         if (err.response.status === 404) {
           toaster.show('Location not found, try another location', {
             type: 'error',
+          })
+        }
+        if (err.response.status === 429) {
+          loadingWeatherData.value = false
+          reLoadingWeatherData.value = false
+          toaster.show('Too many requests, try again after a while', {
+            type: 'info',
           })
         }
       })
@@ -204,6 +213,7 @@
   const getFutureWeatherForecastData = (lat: number, lon: number) => {
     WeatherApi.getWeatherForecast(lat, lon)
       .then((resp: any) => {
+        console.log(resp, 'resp2')
         const nextDaysWeather: AbstractDayWeather[] = []
         resp.daily.slice(1, 8).forEach((day: any) => {
           nextDaysWeather.push({
@@ -227,12 +237,7 @@
       })
   }
 
-  const getLocationWeather = async () => {
-    await getCurrentWeather('Nairobi')
-    await getFutureWeatherForecastData(weatherLocation.value.lat, weatherLocation.value.lon)
-  }
-
-  getLocationWeather()
+  getCurrentWeather('Nairobi')
 </script>
 
 <style lang="postcss">
@@ -253,29 +258,32 @@
       > :last-child {
         @apply border-b-0;
       }
-      .location-weather-overview {
-        @apply flex items-end justify-between;
+      .location-weather-overview-wrapper {
+        @apply flex flex-col;
         &.can-show-more {
           @apply md:cursor-pointer;
         }
-        .location {
-          .current-temp {
-            @apply font-bold;
+        .location-weather-overview {
+          @apply flex items-end justify-between;
+          .location {
+            .current-temp {
+              @apply font-bold;
+            }
+          }
+          .weather-overview {
+            @apply flex flex-col items-end;
+            img.weather-icon {
+              @apply w-[60px] h-[60px];
+            }
+            .high-low-temp {
+              @apply opacity-50;
+            }
           }
         }
-        .weather-overview {
-          @apply flex flex-col items-end;
-          img.weather-icon {
-            @apply w-[60px] h-[60px];
+        .show-more {
+          > * {
+            @apply flex items-center justify-center md:hidden;
           }
-          .high-low-temp {
-            @apply opacity-50;
-          }
-        }
-      }
-      .show-more {
-        > * {
-          @apply flex items-center justify-center md:hidden;
         }
       }
       .next-days-wrapper,
