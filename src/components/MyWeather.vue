@@ -222,7 +222,7 @@
             icon: day.weather[0].icon,
           })
         })
-        store.dispatch('setNextDaysWeather', { data: nextDaysWeather })
+        store.dispatch('setNextDaysWeather', nextDaysWeather)
       })
       .catch((err: { response: any }) => {
         if (err.response.status === 429) {

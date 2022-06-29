@@ -19,7 +19,7 @@ This is a weather-app built on top of Vue 3 in Vite.
   - [ ] Sunrise and sunset times
 - [ ] The app will display a list of the 7 upcoming days of the weather forecast.
 - [ ] The app will display a list of the 5 past days of the weather forecast.
-- [ ] The app is hosted on a Heroku account and can be accessed here(to be added).
+- [ ] The app is hosted on a Heroku account and can be accessed [here](https://too-collins-weather-app.herokuapp.com/).
 
 ## Project Setup
 
