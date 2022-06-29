@@ -14,16 +14,28 @@ export default class WeatherApi {
       .catch((err) => Promise.reject(err))
   }
 
-  static async getPastDetails(): Promise<any> {
+  static async getWeatherForecast(lat: number, lon: number): Promise<any> {
     return axios
-      .get('/forecast', {
+      .get('/onecall', {
+        params: {
+          lat,
+          lon,
+          units: 'metric',
+          exclude: 'minutely,hourly',
+        },
+      })
+      .then((resp) => resp.data)
+      .catch((err) => Promise.reject(err))
+  }
+
+  static async getPreviousDaysForecast(): Promise<any> {
+    return axios
+      .get('/onecall/timemachine', {
         params: {
           lat: 51.5085,
           lon: -0.1257,
-          // dt: DateTime.now().minus({ days: 3 }).toJSDate().getTime(),
+          dt: DateTime.now().minus({ days: 2 }).toJSDate().getTime(),
           units: 'metric',
-          cnt: 5,
-          // exclude: 'minutely,hourly,alerts',
         },
       })
       .then((resp) => resp.data)

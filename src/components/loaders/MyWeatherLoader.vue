@@ -23,6 +23,17 @@
         </div>
       </div>
     </div>
+    <div class="next-days-wrapper">
+      <div class="title">
+        <PlaceholderShimmer height="25px" width="200px" animate />
+      </div>
+      <div class="my-[20px]">
+        <PlaceholderShimmer height="75px" width="100%" animate />
+      </div>
+      <div>
+        <PlaceholderShimmer height="75px" width="100%" animate />
+      </div>
+    </div>
   </div>
 </template>
 

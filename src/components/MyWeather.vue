@@ -16,10 +16,15 @@
         <div @click="showMore = !showMore" class="location-weather-overview">
           <div class="location">
             <h1 class="current-temp">{{ currTemp }}</h1>
-            <h3 class="title">{{ weatherLocation.name }}, {{ weatherLocation.country }}</h3>
+            <h3 class="title">{{ locationNameOrTimezone }}</h3>
           </div>
           <div class="weather-overview">
-            <img v-if="weatherIconUrl" class="weather-icon" :src="weatherIconUrl" alt="Weather icon" />
+            <img
+              v-if="weatherIconUrl"
+              class="weather-icon"
+              :src="weatherIconUrl(weatherDescription.icon)"
+              alt="Weather icon"
+            />
             <h3>{{ capitalize(weatherDescription.description) }}</h3>
             <h4 class="high-low-temp">{{ highLowTemperature }}</h4>
           </div>
@@ -27,11 +32,27 @@
         <Transition>
           <AdditionalWeatherData v-if="showMore" :dataInfo="dataInfo" />
         </Transition>
-        <div class="next-days">
-          <h5>Next 7 days data here</h5>
+        <div class="next-days-wrapper">
+          <h6 class="title">Next 7 days forecast</h6>
+          <div class="next-days" :class="{ 'no-data': !nextDaysWeatherData.length }">
+            <div class="day-weather" v-if="nextDaysWeatherData.length" v-for="item in nextDaysWeatherData">
+              <h6 class="day">{{ item.day }}</h6>
+              <img v-if="item.icon" class="icon" :src="weatherIconUrl(item.icon)" alt="Weather icon" />
+              <h4 class="temp">{{ item.temp }}</h4>
+            </div>
+            <div class="no-data" v-else>No data yet</div>
+          </div>
         </div>
-        <div class="last-days">
-          <h5>Last 5 days data here</h5>
+        <div class="last-days-wrapper">
+          <h6 class="title">Last 5 days forecast</h6>
+          <div class="last-days" :class="{ 'no-data': true }">
+            <!--            <div class="day-weather" v-if="lastDaysWeatherData.length" v-for="item in lastDaysWeatherData">-->
+            <!--              <h6 class="day">{{ item.day }}</h6>-->
+            <!--              <img v-if="item.icon" class="icon" :src="weatherIconUrl(item.icon)" alt="Weather icon" />-->
+            <!--              <h4 class="temp">{{ item.temp }}</h4>-->
+            <!--            </div>-->
+            <div class="no-data">No data yet</div>
+          </div>
         </div>
       </template>
     </div>
@@ -43,7 +64,7 @@
   import MyWeatherLoader from '@/components/loaders/MyWeatherLoader.vue'
   import AdditionalWeatherData from '@/components/AdditionalWeatherData.vue'
   import WeatherApi from '@/services/api/WeatherApi'
-  import { key } from '@/store/weather'
+  import { AbstractDayWeather, key } from '@/store/weather'
   import { createToaster } from '@meforma/vue-toaster'
   import { DateTime } from 'luxon'
   import { useStore } from 'vuex'
@@ -56,14 +77,12 @@
 
   const loadingWeatherData = ref(true)
   const reLoadingWeatherData = ref(false)
-  const location = ref('')
+  const location = ref('Nairobi')
   const showMore = ref(false)
 
   const weatherLocation = computed(() => store.state.weatherData.location)
 
   const weather = computed(() => store.state.weatherData.weather)
-
-  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
   const weatherDescription = computed(() => store.state.weatherData.weatherDescription)
 
@@ -82,6 +101,8 @@
     const date = DateTime.fromSeconds(seconds)
     return date.toFormat('HH:mm')
   })
+
+  const nextDaysWeatherData = computed(() => store.state.weatherData.nextDaysWeather)
 
   const dataInfo = computed(() => {
     return [
@@ -118,19 +139,26 @@
     ]
   })
 
-  const weatherIconUrl = computed(() => `http://openweathermap.org/img/wn/${weatherDescription.value.icon}@2x.png`)
+  const locationNameOrTimezone = computed(() => {
+    if (weatherLocation.value.name && weatherLocation.value.country)
+      return `${weatherLocation.value.name}, ${weatherLocation.value.country}`
+    return '-'
+  })
+
+  const weatherIconUrl = computed(() => (icon: string) => `http://openweathermap.org/img/wn/${icon}@2x.png`)
+
+  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
   const fetchWeather = () => {
     if (location.value) {
       reLoadingWeatherData.value = true
-      getWeather(location.value)
+      getLocationWeather()
     }
   }
 
-  const getWeather = async (location: string) => {
+  const getCurrentWeather = async (location: string) => {
     await WeatherApi.getWeatherDetails(location)
       .then((resp: any) => {
-        // console.log(resp, 'response')
         store.dispatch('setWeather', {
           currentTemperature: resp.main.temp,
           feelsLike: resp.main.feels_like,
@@ -164,29 +192,56 @@
           })
         }
       })
+  }
+
+  const getFutureWeatherForecastData = (lat: number, lon: number) => {
+    WeatherApi.getWeatherForecast(lat, lon)
+      .then((resp: any) => {
+        const nextDaysWeather: AbstractDayWeather[] = []
+        resp.daily.slice(1, 8).forEach((day: any) => {
+          nextDaysWeather.push({
+            day: DateTime.fromSeconds(day.dt).toFormat('dd'),
+            temp: `${mathRound.value(day.temp.max)}\u00B0`,
+            icon: day.weather[0].icon,
+          })
+        })
+        store.dispatch('setNextDaysWeather', { data: nextDaysWeather })
+      })
+      .catch((err: { response: any }) => {
+        if (err.response.status === 429) {
+          toaster.show('Too many requests, try again after a while', {
+            type: 'info',
+          })
+        }
+      })
       .finally(() => {
         loadingWeatherData.value = false
         reLoadingWeatherData.value = false
       })
   }
 
+  const getLocationWeather = async () => {
+    await getCurrentWeather(location.value)
+    await getFutureWeatherForecastData(weatherLocation.value.lat, weatherLocation.value.lon)
+  }
+
+  getLocationWeather()
+
   onMounted(() => {
-    getWeather('Nairobi')
-    // testing weather forecast for x days
-    WeatherApi.getPastDetails()
-      .then((resp: any) => {
-        // console.log(resp, 'response')
-      })
-      .catch((err: { response: any }) => {
-        // console.log(err.response, 'error')
-      })
+    // WeatherApi.getPreviousDaysForecast()
+    //   .then((resp: any) => {
+    //     console.log(resp, 'prev response')
+    //   })
+    //   .catch((err: { response: any }) => {
+    //     console.log(err.response, 'prev error')
+    //   })
   })
 </script>
 
 <style lang="postcss">
   .my-weather {
     @apply flex flex-col space-y-[20px] px-[20px] py-[15px] w-full bg-white;
-    @apply md:w-[500px] md:rounded-lg md:shadow-lg;
+    @apply md:w-[700px] md:rounded-lg md:shadow-lg;
     .location-input {
       @apply flex flex-col space-y-[10px];
       input {
@@ -215,6 +270,32 @@
           }
           .high-low-temp {
             @apply opacity-50;
+          }
+        }
+      }
+      .next-days-wrapper,
+      .last-days-wrapper {
+        @apply flex flex-col space-y-[15px];
+        .title {
+          @apply font-bold uppercase opacity-75;
+        }
+        .next-days,
+        .last-days {
+          @apply flex items-center justify-between;
+          &.no-data {
+            @apply justify-center;
+          }
+          .day-weather {
+            @apply flex items-center flex-col space-y-[10px];
+            .day {
+              @apply opacity-50;
+            }
+            img.icon {
+              @apply w-[40px] h-[40px];
+            }
+            .temp {
+              @apply font-bold;
+            }
           }
         }
       }

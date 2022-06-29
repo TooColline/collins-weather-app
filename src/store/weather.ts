@@ -1,6 +1,12 @@
 import type { InjectionKey } from 'vue'
 import { createStore, Store } from 'vuex'
 
+export interface AbstractDayWeather {
+  temp: string
+  icon: string
+  day: string
+}
+
 export interface State {
   weatherData: {
     weather: {
@@ -28,6 +34,7 @@ export interface State {
       timezone: number
       date: number // unix time
     }
+    nextDaysWeather: AbstractDayWeather[]
   }
 }
 
@@ -62,6 +69,7 @@ export const store = createStore<State>({
         main: '',
         description: '',
       },
+      nextDaysWeather: [],
     },
   },
   getters: {
@@ -82,6 +90,9 @@ export const store = createStore<State>({
     },
     SET_WEATHER_LOCATION(state, location) {
       state.weatherData.location = location
+    },
+    SET_NEXT_DAYS_WEATHER(state, weather) {
+      state.weatherData.nextDaysWeather = weather
     },
   },
   actions: {
@@ -117,6 +128,14 @@ export const store = createStore<State>({
       payload: { name: string; country: string; lon: number; lat: number; timezone: number; date: number }
     ) {
       commit('SET_WEATHER_LOCATION', payload)
+    },
+    setNextDaysWeather(
+      { commit },
+      payload: {
+        data: AbstractDayWeather[]
+      }
+    ) {
+      commit('SET_NEXT_DAYS_WEATHER', payload.data)
     },
   },
 })
