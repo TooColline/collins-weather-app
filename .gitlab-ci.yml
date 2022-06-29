@@ -1,6 +1,6 @@
 stages:
   - build
-  - staging
+  - deploy
 
 build:
   stage: build
@@ -12,7 +12,7 @@ build:
     paths:
       - dist/
 
-staging:
+deploy:
   stage: deploy
   script:
     - apt-get update -qy
