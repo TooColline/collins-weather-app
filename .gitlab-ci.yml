@@ -23,6 +23,3 @@ deploy:
     - gem install dpl
     # deploy to heroku:
     - dpl --provider=heroku --app=$HEROKU_APP_NAME --api-key=$HEROKU_API_KEY --skip_cleanup
-
-environment:
-  url: https://$HEROKU_APP_NAME.herokuapp.com
