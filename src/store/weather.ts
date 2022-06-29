@@ -1,39 +1,17 @@
 import type { InjectionKey } from 'vue'
 import { createStore, Store } from 'vuex'
-
-export interface AbstractDayWeather {
-  temp: string
-  icon: string
-  day: string
-}
+import type {
+  AbstractDayWeather,
+  CurrentWeatherData,
+  Location,
+  WeatherDescription,
+} from '@/services/interfaces/Weather'
 
 export interface State {
   weatherData: {
-    weather: {
-      currentTemperature: number
-      feelsLike: number
-      highTemperature: number
-      lowTemperature: number
-      windSpeed: number
-      humidity: number
-      pressure: number
-      sunrise: string
-      sunset: string
-    }
-    weatherDescription: {
-      id: number
-      icon: string
-      main: string
-      description: string
-    }
-    location: {
-      name: string
-      country: string
-      lon: number
-      lat: number
-      timezone: number
-      date: number // unix time
-    }
+    weather: CurrentWeatherData
+    weatherDescription: WeatherDescription
+    location: Location
     nextDaysWeather: AbstractDayWeather[]
   }
 }
@@ -96,46 +74,17 @@ export const store = createStore<State>({
     },
   },
   actions: {
-    setWeather(
-      { commit },
-      payload: {
-        currentTemperature: number
-        feelsLike: number
-        highTemperature: number
-        lowTemperature: number
-        windSpeed: number
-        humidity: number
-        pressure: number
-        sunrise: string
-        sunset: string
-      }
-    ) {
+    setWeather({ commit }, payload: CurrentWeatherData) {
       commit('SET_WEATHER', payload)
     },
-    setWeatherDescription(
-      { commit },
-      payload: {
-        id: number
-        icon: string
-        main: string
-        description: string
-      }
-    ) {
+    setWeatherDescription({ commit }, payload: WeatherDescription) {
       commit('SET_WEATHER_DESCRIPTION', payload)
     },
-    setWeatherLocation(
-      { commit },
-      payload: { name: string; country: string; lon: number; lat: number; timezone: number; date: number }
-    ) {
+    setWeatherLocation({ commit }, payload: Location) {
       commit('SET_WEATHER_LOCATION', payload)
     },
-    setNextDaysWeather(
-      { commit },
-      payload: {
-        data: AbstractDayWeather[]
-      }
-    ) {
-      commit('SET_NEXT_DAYS_WEATHER', payload.data)
+    setNextDaysWeather({ commit }, payload: AbstractDayWeather[]) {
+      commit('SET_NEXT_DAYS_WEATHER', payload)
     },
   },
 })

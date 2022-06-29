@@ -28,13 +28,14 @@ export default class WeatherApi {
       .catch((err) => Promise.reject(err))
   }
 
-  static async getPreviousDaysForecast(): Promise<any> {
+  // the api accepts dt as a string
+  static async getPreviousDaysForecast(dt: number): Promise<any> {
     return axios
       .get('/onecall/timemachine', {
         params: {
           lat: 51.5085,
           lon: -0.1257,
-          dt: DateTime.now().minus({ days: 2 }).toJSDate().getTime(),
+          dt: `${dt}`,
           units: 'metric',
         },
       })

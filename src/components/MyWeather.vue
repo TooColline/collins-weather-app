@@ -13,20 +13,29 @@
     <div class="weather-info-body">
       <MyWeatherLoader v-if="reLoadingWeatherData" />
       <template v-else>
-        <div @click="showMore = !showMore" class="location-weather-overview">
-          <div class="location">
-            <h1 class="current-temp">{{ currTemp }}</h1>
-            <h3 class="title">{{ locationNameOrTimezone }}</h3>
+        <div
+          @click="showMoreDetails"
+          class="location-weather-overview-wrapper"
+          :class="{ 'can-show-more': weather.currentTemperature }"
+        >
+          <div class="location-weather-overview">
+            <div class="location">
+              <h1 class="current-temp">{{ currTemp }}</h1>
+              <h3 class="title">{{ locationNameOrTimezone }}</h3>
+            </div>
+            <div class="weather-overview">
+              <img
+                v-if="weatherDescription.icon"
+                class="weather-icon"
+                :src="weatherIconUrl(weatherDescription.icon)"
+                alt="Weather icon"
+              />
+              <h3>{{ capitalize(weatherDescription.description) }}</h3>
+              <h4 class="high-low-temp">{{ highLowTemperature }}</h4>
+            </div>
           </div>
-          <div class="weather-overview">
-            <img
-              v-if="weatherIconUrl"
-              class="weather-icon"
-              :src="weatherIconUrl(weatherDescription.icon)"
-              alt="Weather icon"
-            />
-            <h3>{{ capitalize(weatherDescription.description) }}</h3>
-            <h4 class="high-low-temp">{{ highLowTemperature }}</h4>
+          <div v-if="weather.currentTemperature" class="show-more">
+            <ArrowDownCircle />
           </div>
         </div>
         <Transition>
@@ -40,20 +49,10 @@
               <img v-if="item.icon" class="icon" :src="weatherIconUrl(item.icon)" alt="Weather icon" />
               <h4 class="temp">{{ item.temp }}</h4>
             </div>
-            <div class="no-data" v-else>No data yet</div>
+            <div class="no-data" v-else>No data to display</div>
           </div>
         </div>
-        <div class="last-days-wrapper">
-          <h6 class="title">Last 5 days forecast</h6>
-          <div class="last-days" :class="{ 'no-data': true }">
-            <!--            <div class="day-weather" v-if="lastDaysWeatherData.length" v-for="item in lastDaysWeatherData">-->
-            <!--              <h6 class="day">{{ item.day }}</h6>-->
-            <!--              <img v-if="item.icon" class="icon" :src="weatherIconUrl(item.icon)" alt="Weather icon" />-->
-            <!--              <h4 class="temp">{{ item.temp }}</h4>-->
-            <!--            </div>-->
-            <div class="no-data">No data yet</div>
-          </div>
-        </div>
+        <PreviousWeatherData />
       </template>
     </div>
   </div>
@@ -63,12 +62,17 @@
   import { computed, onMounted, ref } from 'vue'
   import MyWeatherLoader from '@/components/loaders/MyWeatherLoader.vue'
   import AdditionalWeatherData from '@/components/AdditionalWeatherData.vue'
+  import PreviousWeatherData from '@/components/PreviousWeatherData.vue'
+  import ArrowDownCircle from 'vue-material-design-icons/ArrowDownCircle.vue'
   import WeatherApi from '@/services/api/WeatherApi'
-  import { AbstractDayWeather, key } from '@/store/weather'
   import { createToaster } from '@meforma/vue-toaster'
   import { DateTime } from 'luxon'
   import { useStore } from 'vuex'
+  import { useWeather } from '@/composables/useWeather'
+  import { key } from '@/store/weather'
+  import type { AbstractDayWeather } from '@/services/interfaces/Weather'
 
+  const { weatherIconUrl, mathRound } = useWeather()
   const store = useStore(key)
   const toaster = createToaster({
     position: 'top',
@@ -77,7 +81,7 @@
 
   const loadingWeatherData = ref(true)
   const reLoadingWeatherData = ref(false)
-  const location = ref('Nairobi')
+  const location = ref('')
   const showMore = ref(false)
 
   const weatherLocation = computed(() => store.state.weatherData.location)
@@ -87,8 +91,6 @@
   const weatherDescription = computed(() => store.state.weatherData.weatherDescription)
 
   const currTemp = computed(() => `${mathRound.value(weather.value.currentTemperature)}\u00B0`)
-
-  const mathRound = computed(() => (value: number) => Math.round(value))
 
   const highLowTemperature = computed(
     () =>
@@ -145,7 +147,12 @@
     return '-'
   })
 
-  const weatherIconUrl = computed(() => (icon: string) => `http://openweathermap.org/img/wn/${icon}@2x.png`)
+  const showMoreDetails = () => {
+    // check whether some details are available first
+    if (weather.value.currentTemperature) {
+      showMore.value = !showMore.value
+    }
+  }
 
   const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
@@ -221,21 +228,11 @@
   }
 
   const getLocationWeather = async () => {
-    await getCurrentWeather(location.value)
+    await getCurrentWeather('Nairobi')
     await getFutureWeatherForecastData(weatherLocation.value.lat, weatherLocation.value.lon)
   }
 
   getLocationWeather()
-
-  onMounted(() => {
-    // WeatherApi.getPreviousDaysForecast()
-    //   .then((resp: any) => {
-    //     console.log(resp, 'prev response')
-    //   })
-    //   .catch((err: { response: any }) => {
-    //     console.log(err.response, 'prev error')
-    //   })
-  })
 </script>
 
 <style lang="postcss">
@@ -257,7 +254,10 @@
         @apply border-b-0;
       }
       .location-weather-overview {
-        @apply flex items-end justify-between md:cursor-pointer;
+        @apply flex items-end justify-between;
+        &.can-show-more {
+          @apply md:cursor-pointer;
+        }
         .location {
           .current-temp {
             @apply font-bold;
@@ -271,6 +271,11 @@
           .high-low-temp {
             @apply opacity-50;
           }
+        }
+      }
+      .show-more {
+        > * {
+          @apply flex items-center justify-center md:hidden;
         }
       }
       .next-days-wrapper,
