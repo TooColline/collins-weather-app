@@ -5,7 +5,7 @@
   <div v-else class="last-days-wrapper">
     <h6 class="title">Last 5 days forecast</h6>
     <div class="last-days" :class="{ 'no-data': !previousDatesWeather.length }">
-      <div class="day-weather" v-if="previousDatesWeather.length" v-for="item in previousDatesWeather">
+      <div class="day-weather" v-if="previousDatesWeather.length" v-for="item in sortedPreviousDatesWeather">
         <h6 class="day">{{ item.day }}</h6>
         <img v-if="item.icon" class="icon" :src="weatherIconUrl(item.icon)" alt="Weather icon" />
         <h4 class="temp">{{ item.temp }}</h4>
@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, watch } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import PlaceholderShimmer from '@/components/PlaceholderShimmer.vue'
   import WeatherApi from '@/services/api/WeatherApi'
   import { useWeather } from '@/composables/useWeather'
@@ -26,6 +26,10 @@
   const { weatherIconUrl, mathRound } = useWeather()
   const loadingPreviousDatesWeather = ref(true)
   const previousDatesWeather = ref([] as AbstractDayWeather[])
+
+  const sortedPreviousDatesWeather = computed(() => {
+    return previousDatesWeather.value.sort((a, b) => b.day - a.day)
+  })
 
   const monthToday = DateTime.now().month
   const yearToday = DateTime.now().year
