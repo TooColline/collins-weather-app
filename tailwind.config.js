@@ -2,6 +2,11 @@
 module.exports = {
   content: ['./index.html', './src/**/*.{vue,js,ts}'],
   theme: {
+    screens: {
+      xs: '375px',
+      sm: '768px',
+      md: '992px',
+    },
     fontSize: {
       xs: '12px',
       sm: '14px',

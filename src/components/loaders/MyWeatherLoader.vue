@@ -5,21 +5,21 @@
         <div class="location-weather-overview">
           <div class="location">
             <div class="current-temp">
-              <PlaceholderShimmer height="40px" width="60px" animate />
+              <PlaceholderShimmer height="35px" width="60px" animate />
             </div>
             <div class="title">
-              <PlaceholderShimmer height="30px" width="150px" animate />
+              <PlaceholderShimmer height="25px" width="100%" animate />
             </div>
           </div>
           <div class="weather-overview">
             <div class="weather-icon">
-              <PlaceholderShimmer height="60px" width="60px" animate />
+              <PlaceholderShimmer height="50px" width="50px" animate />
             </div>
-            <div>
-              <PlaceholderShimmer height="25px" width="200px" animate />
+            <div class="weather-description">
+              <PlaceholderShimmer height="25px" width="100%" animate />
             </div>
             <div class="high-low-temp">
-              <PlaceholderShimmer height="25px" width="150px" animate />
+              <PlaceholderShimmer height="25px" width="100%" animate />
             </div>
           </div>
         </div>
@@ -54,6 +54,15 @@
   .my-weather-loader {
     .location-weather-overview {
       @apply w-full;
+    }
+    .title {
+      @apply w-[100px] sm:w-[200px];
+    }
+    .weather-description {
+      @apply w-[150px] sm:w-[200px];
+    }
+    .high-low-temp {
+      @apply w-[100px] sm:w-[150px];
     }
   }
 </style>

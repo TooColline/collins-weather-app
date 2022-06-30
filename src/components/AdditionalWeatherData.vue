@@ -23,6 +23,8 @@
   import WeatherSunsetUp from 'vue-material-design-icons/WeatherSunsetUp.vue'
   import CarBrakeRetarder from 'vue-material-design-icons/CarBrakeRetarder.vue'
 
+  // @apply grid grid-cols-2 gap-[10px] sm:grid-cols-3 md:grid-cols-4;
+
   defineProps({
     dataInfo: {
       type: Array as PropType<{ title: string; value: string | number; icon: string }[]>,
@@ -33,6 +35,6 @@
 
 <style lang="postcss" scoped>
   .additional-info {
-    @apply grid grid-cols-3 gap-[10px] md:grid-cols-4;
+    @apply grid grid-cols-2 gap-[10px] xs:grid-cols-3 md:grid-cols-4;
   }
 </style>

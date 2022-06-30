@@ -34,7 +34,7 @@
               <h4 class="high-low-temp">{{ highLowTemperature }}</h4>
             </div>
           </div>
-          <div v-if="weather.currentTemperature" class="show-more">
+          <div v-if="weather.currentTemperature && !showMore" class="show-more">
             <ArrowDownCircle />
           </div>
         </div>
@@ -199,6 +199,8 @@
           toaster.show('Location not found, try another location', {
             type: 'error',
           })
+          loadingWeatherData.value = false
+          reLoadingWeatherData.value = false
         }
         if (err.response.status === 429) {
           loadingWeatherData.value = false
