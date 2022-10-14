@@ -1,6 +1,6 @@
 # weather-app
 
-This is a weather-app built on top of Vue 3 in Vite.
+This is a weather-app built on top of Vue 3 in Vite. Originally build on my GitLab and can be accessed [here](https://gitlab.com/too.collins/weather-app)
 
 ## CORS
 - To make the app work in the browser, we need to enable CORS. And for now we can bypass this by going to [this link](https://cors-anywhere.herokuapp.com/corsdemo) and clicking "Request temporary access to the demo server" then go ahead and reload the app 
