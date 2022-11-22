@@ -10,7 +10,6 @@ const app = createApp(App)
 app.use(router)
 app.use(store, key)
 
-//https://bypass-cors-two.vercel.app
 //http://0.0.0.0:8080
 
 let baseURL = 'https://weather-app-git-dev-collinstooct-gmailcom.vercel.app/https://api.openweathermap.org/data/2.5'
