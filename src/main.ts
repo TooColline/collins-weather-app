@@ -10,7 +10,10 @@ const app = createApp(App)
 app.use(router)
 app.use(store, key)
 
-let baseURL = 'https://bypass-cors-two.vercel.app/https://api.openweathermap.org/data/2.5'
+//https://bypass-cors-two.vercel.app
+//http://0.0.0.0:8080
+
+let baseURL = 'https://weather-app-git-dev-collinstooct-gmailcom.vercel.app/https://api.openweathermap.org/data/2.5'
 // axios.defaults.headers.post['Access-Control-Allow-Origin'] = '*'
 axios.defaults.baseURL = app.config.globalProperties.publicPath = baseURL
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
