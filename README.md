@@ -2,6 +2,9 @@
 
 This is a weather-app built on top of Vue 3, Vite and TypeScript. Hosted on Heroku and can be accessed [here](https://too-collins-weather-app.herokuapp.com/)
 
+## CORS
+- To make the app work in the browser, we need to enable CORS. And for now we can bypass this by going to [this link](https://cors-anywhere.herokuapp.com/corsdemo) and clicking "Request temporary access to the demo server" then go ahead and reload the app
+
 ## Features and review notes
 - [ ] Responsive and has helpful loaders and toasts for loading and errors.
 - [ ] There's a location input where a user can enter a city name.
