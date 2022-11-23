@@ -30,7 +30,7 @@
                 :src="weatherIconUrl(weatherDescription.icon)"
                 alt="Weather icon"
               />
-              <h3>{{ capitalize(weatherDescription.description) }}</h3>
+              <h3>{{ weatherDescription.description }}</h3>
               <h4 class="high-low-temp">{{ highLowTemperature }}</h4>
             </div>
           </div>
@@ -64,31 +64,25 @@
   import AdditionalWeatherData from '@/components/AdditionalWeatherData.vue'
   import PreviousWeatherData from '@/components/PreviousWeatherData.vue'
   import ArrowDownCircle from 'vue-material-design-icons/ArrowDownCircle.vue'
-  import WeatherApi from '@/services/api/WeatherApi'
-  import { createToaster } from '@meforma/vue-toaster'
   import { DateTime } from 'luxon'
   import { useStore } from 'vuex'
   import { useWeather } from '@/composables/useWeather'
   import { key } from '@/store/weather'
-  import type { AbstractDayWeather } from '@/services/interfaces/Weather'
 
-  const { weatherIconUrl, mathRound } = useWeather()
+  const {
+    weatherIconUrl,
+    mathRound,
+    loadingWeatherData,
+    reLoadingWeatherData,
+    weatherLocation,
+    weather,
+    weatherDescription,
+    nextDaysWeatherData,
+  } = useWeather()
   const store = useStore(key)
-  const toaster = createToaster({
-    position: 'top',
-    duration: 3000,
-  })
 
-  const loadingWeatherData = ref(true)
-  const reLoadingWeatherData = ref(false)
   const location = ref('')
   const showMore = ref(false)
-
-  const weatherLocation = computed(() => store.state.weatherData.location)
-
-  const weather = computed(() => store.state.weatherData.weather)
-
-  const weatherDescription = computed(() => store.state.weatherData.weatherDescription)
 
   const currTemp = computed(() => `${mathRound.value(weather.value.currentTemperature)}\u00B0`)
 
@@ -103,8 +97,6 @@
     const date = DateTime.fromSeconds(seconds)
     return date.toFormat('HH:mm')
   })
-
-  const nextDaysWeatherData = computed(() => store.state.weatherData.nextDaysWeather)
 
   const dataInfo = computed(() => {
     return [
@@ -154,92 +146,18 @@
     }
   }
 
-  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
-
   const fetchWeather = () => {
     if (location.value) {
-      reLoadingWeatherData.value = true
-      getCurrentWeather(location.value)
+      store.commit('SET_RE_LOADING_WEATHER_DATA', true)
+      getWeather(location.value)
     }
   }
 
-  const getCurrentWeather = async (location: string) => {
-    await WeatherApi.getWeatherDetails(location)
-      .then((resp: any) => {
-        console.log(resp, 'resp')
-        store.dispatch('setWeather', {
-          currentTemperature: resp.main.temp,
-          feelsLike: resp.main.feels_like,
-          highTemperature: resp.main.temp_max,
-          lowTemperature: resp.main.temp_min,
-          windSpeed: resp.wind.speed,
-          humidity: resp.main.humidity,
-          pressure: resp.main.pressure,
-          sunrise: resp.sys.sunrise,
-          sunset: resp.sys.sunset,
-        })
-        store.dispatch('setWeatherLocation', {
-          name: resp.name,
-          country: resp.sys.country,
-          lon: resp.coord.lon,
-          lat: resp.coord.lat,
-          timezone: resp.timezone,
-          date: resp.dt,
-        })
-        store.dispatch('setWeatherDescription', {
-          id: resp.weather[0].id,
-          main: resp.weather[0].main,
-          description: resp.weather[0].description,
-          icon: resp.weather[0].icon,
-        })
-        getFutureWeatherForecastData(resp.coord.lat, resp.coord.lon)
-      })
-      .catch((err: any) => {
-        if (err.response.status === 404) {
-          toaster.show('Location not found, try another location', {
-            type: 'error',
-          })
-          loadingWeatherData.value = false
-          reLoadingWeatherData.value = false
-        }
-        if (err.response.status === 429) {
-          loadingWeatherData.value = false
-          reLoadingWeatherData.value = false
-          toaster.show('Too many requests, try again after a while', {
-            type: 'info',
-          })
-        }
-      })
+  const getWeather = async (location: string) => {
+    await store.dispatch('setWeatherData', location)
   }
 
-  const getFutureWeatherForecastData = (lat: number, lon: number) => {
-    WeatherApi.getWeatherForecast(lat, lon)
-      .then((resp: any) => {
-        console.log(resp, 'resp2')
-        const nextDaysWeather: AbstractDayWeather[] = []
-        resp.daily.slice(1, 8).forEach((day: any) => {
-          nextDaysWeather.push({
-            day: DateTime.fromSeconds(day.dt).toFormat('dd'),
-            temp: `${mathRound.value(day.temp.max)}\u00B0`,
-            icon: day.weather[0].icon,
-          })
-        })
-        store.dispatch('setNextDaysWeather', nextDaysWeather)
-      })
-      .catch((err: { response: any }) => {
-        if (err.response.status === 429) {
-          toaster.show('Too many requests, try again after a while', {
-            type: 'info',
-          })
-        }
-      })
-      .finally(() => {
-        loadingWeatherData.value = false
-        reLoadingWeatherData.value = false
-      })
-  }
-
-  getCurrentWeather('Nairobi')
+  getWeather('Nairobi')
 </script>
 
 <style lang="postcss">
@@ -261,7 +179,7 @@
         @apply border-b-0;
       }
       .location-weather-overview-wrapper {
-        @apply flex flex-col;
+        @apply flex flex-col hover:bg-gray-200 hover:transition-colors hover:mx-[-20px] hover:px-[20px];
         &.can-show-more {
           @apply md:cursor-pointer;
         }
@@ -279,6 +197,9 @@
             }
             .high-low-temp {
               @apply opacity-50;
+            }
+            h3 {
+              @apply capitalize;
             }
           }
         }
