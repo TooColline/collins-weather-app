@@ -10,7 +10,9 @@ const app = createApp(App)
 app.use(router)
 app.use(store, key)
 
-let baseURL = 'https://proxy-ibmasyzzya-uc.a.run.app/https://api.openweathermap.org/data/2.5'
+//http://0.0.0.0:8080 for local bypass cors proxy
+
+let baseURL = 'https://collins-bypass-proxy.herokuapp.com/https://api.openweathermap.org/data/2.5'
 axios.defaults.headers.post['Access-Control-Allow-Origin'] = '*'
 axios.defaults.baseURL = app.config.globalProperties.publicPath = baseURL
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
