@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+  import { RouterView } from 'vue-router'
 </script>
 
 <template>
@@ -7,8 +7,7 @@ import { RouterView } from 'vue-router'
 </template>
 
 <style lang="postcss">
-
-#app {
-  @apply min-h-screen w-full mx-auto p-10 flex flex-col items-center justify-center;
-}
+  #app {
+    @apply min-h-screen w-full mx-auto flex flex-col items-center justify-center bg-gray-200;
+  }
 </style>

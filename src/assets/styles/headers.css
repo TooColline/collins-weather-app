@@ -1,0 +1,26 @@
+@layer base {
+    h1,
+    .h1 {
+        @apply m-0 text-xl leading-xl font-normal md:text-3xl md:leading-4xl;
+    }
+    h2,
+    .h2 {
+        @apply m-0 text-lg leading-lg font-normal md:text-xl md:leading-xl;
+    }
+    h3,
+    .h3 {
+        @apply m-0 text-md leading-md font-normal md:text-lg md:leading-lg;
+    }
+    h4,
+    .h4 {
+        @apply m-0 text-sm leading-sm font-normal md:text-md md:leading-md;
+    }
+    h5,
+    .h5 {
+        @apply m-0 text-xs font-normal leading-xs sm:text-sm sm:leading-sm;
+    }
+    h6,
+    .h6 {
+        @apply m-0 text-xs font-normal leading-xs;
+    }
+}

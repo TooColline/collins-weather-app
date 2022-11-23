@@ -1,7 +1,7 @@
 <script setup lang="ts">
-  import Dummy from '@/components/Dummy.vue'
+  import MyWeather from '@/components/MyWeather.vue'
 </script>
 
 <template>
-  <Dummy />
+  <MyWeather />
 </template>
