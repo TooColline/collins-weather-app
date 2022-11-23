@@ -179,7 +179,7 @@
         @apply border-b-0;
       }
       .location-weather-overview-wrapper {
-        @apply flex flex-col;
+        @apply flex flex-col hover:bg-gray-200 hover:transition-colors hover:mx-[-20px] hover:px-[20px];
         &.can-show-more {
           @apply md:cursor-pointer;
         }
