@@ -31,35 +31,29 @@
     return previousDatesWeather.value.sort((a, b) => b.day - a.day)
   })
 
-  const monthToday = DateTime.now().month
-  const yearToday = DateTime.now().year
-
-  const dates: number[] = []
+  const previousDatesWeatherPromises: any[] = []
 
   for (let i = 0; i < 5; i++) {
-    const date = DateTime.now().minus({ days: i }).day
-    const fullDate = `${yearToday}-${monthToday}-${date}`
-    dates.push(DateTime.fromFormat(fullDate, 'yyyy-M-dd').toSeconds())
+    const date = DateTime.now().minus({ days: i }).toFormat('yyyy-M-dd')
+    previousDatesWeatherPromises.push(
+      WeatherApi.getPreviousDaysForecast(DateTime.fromFormat(date, 'yyyy-M-dd').toSeconds())
+    )
   }
 
-  dates.forEach(async (date, index, array) => {
-    await WeatherApi.getPreviousDaysForecast(date)
-      .then((resp: any) => {
+  Promise.all(previousDatesWeatherPromises)
+    .then((forecasts) => {
+      forecasts.forEach((forecast) => {
         previousDatesWeather.value.push({
-          day: DateTime.fromSeconds(resp.current.dt).toFormat('dd'),
-          temp: `${mathRound.value(resp.current.temp)}\u00B0`,
-          icon: resp.current.weather[0].icon,
+          day: DateTime.fromSeconds(forecast.current.dt).toFormat('dd'),
+          temp: `${mathRound.value(forecast.current.temp)}\u00B0`,
+          icon: forecast.current.weather[0].icon,
         })
       })
-      .catch((err: { response: any }) => {
-        if (err.response.status === 429) {
-          loadingPreviousDatesWeather.value = false
-        }
-      })
-    if (index === array.length - 1) {
       loadingPreviousDatesWeather.value = false
-    }
-  })
+    })
+    .catch((err) => {
+      loadingPreviousDatesWeather.value = false
+    })
 </script>
 
 <style lang="postcss"></style>
